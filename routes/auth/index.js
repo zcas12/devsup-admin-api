@@ -11,10 +11,12 @@ const secretKey = 'MFswDQYJKoZIhvcNAQEBBQADSgAwRwJAeswwZ+ANz25d7nMVcWkwGrEx3IVUz
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
-        const hashedPassword = await bcrypt.hash(password, 10);
-
+        //const hashedPassword = await bcrypt.hash(password, 10);
+        
+        //필수값 체크
         if(!username || !password){
-            return res.status(200).json({ resultCd:"400", resultMsg: "[필수값 누락]" });
+            await Log.saveEvent(undefined, 'POST', '로그인', false,"[필수값 누락]",req.ip);
+            return res.status(200).json({ resultCd:"400", resultMsg: "필수값 누락" });
         }
         // 계정조회
         const user = await User.findUserById(username);
@@ -25,15 +27,14 @@ router.post('/login', async (req, res) => {
             name: user.name
         }
 
-        let token;
         // JWT 생성 및 전송
-        token = await jwt.sign(tokenParam, secretKey, { expiresIn: 3600 });
+        let token = await jwt.sign(tokenParam, secretKey, { expiresIn: 3600 });
 
         if(!user){
-            await Log.saveEvent(username, 'POST', '로그인', false,'계정을 찾을수없습니다.');
+            await Log.saveEvent(username, 'POST', '로그인', false,'계정을 찾을수없습니다.',req.ip);
             return res.status(200).json({ resultCd:"401", resultMsg: "계정을 찾을수없습니다." });
         } else if(user.id && !(await bcrypt.compare(password, user.password))){
-            await Log.saveEvent(user.id, 'POST', '로그인', false,'비밀번호가 틀렸습니다.');
+            await Log.saveEvent(user.id, 'POST', '로그인', false,'비밀번호가 틀렸습니다.',req.ip);
             return res.status(200).json({ resultCd:"401", resultMsg: "비밀번호가 틀렸습니다." });
         } else if((await bcrypt.compare(password, user.password))){
             req.session.user = {
@@ -42,13 +43,13 @@ router.post('/login', async (req, res) => {
                 token: token,
                 authorized: true,
             };
-            await Log.saveEvent(user.id, 'POST', '로그인', true,'로그인 성공');
+            await Log.saveEvent(user.id, 'POST', '로그인', true,'로그인 성공',req.ip);
             res.status(200).json({resultCd:"200", resultMsg: "로그인 했습니다.", token: token});
         } else {
-            await Log.saveEvent(user.id, 'POST', '로그인', false,'500 error');
+            await Log.saveEvent(user.id, 'POST', '로그인', false,'500 error',req.ip);
         }
     } catch (error) {
-        await Log.saveEvent(user.id, 'POST', '로그인', false,'500 error');
+        await Log.saveEvent(undefined, 'POST', '로그인', false,'서버 에러',req.ip);
 
         res.status(500).json({
             code: 500,
@@ -58,6 +59,9 @@ router.post('/login', async (req, res) => {
 });
 
 router.get('/session-check', verifyToken, async  (req, res) => {
+    const ip = req.header['x-forwarded-for'] || req.connection.remoteAddress;
+
+
     const session= req.session.user;
     if (session){
         res.status(200).json({resultCd:"200", resultMsg: "session check success"})

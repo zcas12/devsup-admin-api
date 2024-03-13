@@ -36,14 +36,17 @@ app.use(cookieParser());
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
+app.set('trust proxy', true);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 const indexRouter = require('./routes/index');
+const logRouter = require('./routes/log/index');
 const authRouter = require('./routes/auth/index');
 app.use('/devsup/api', indexRouter);
 app.use('/devsup/api/auth', authRouter);
+app.use('/devsup/api/log', logRouter);
 
 app.listen(port, () => {
     console.log(`start! express server on http://localhost:${port}`);
