@@ -5,25 +5,24 @@ const Scenario = require('../../database/query/scenario');
 
 router.get('/log-history', async(req,res)=>{
     const {startDate, endDate} = req.query;
-    console.log(startDate)
-    console.log(req.ip)
+
     try {
         if (!startDate || !endDate){
             return res.status(200).json({ resultCd:"400", resultMsg: "필수값 누락" });
         }
         const result = await Log.getLogHistory(startDate,endDate);
 
-        res.status(200).json({resultCd:"200", resultMsg: "조회성공", resultData: result })
+        res.status(200).json({resultCd:"200", resultMsg: "조회성공", resultData: result });
 
     }catch (error) {
-        res.status(500).json({resultCd:"500", resultMsg: "load fail"})
+        res.status(500).json({resultCd:"500", resultMsg: "load fail"});
 
     }
 })
 router.post('/chat-history', async (req, res)=>{
     const {scenarioId} = req.body;
     try {
-        const scenario= await Scenario.findScenarioById(scenarioId)
+        const scenario= await Scenario.findScenarioById(scenarioId);
 
         if (!scenarioId){
             return res.status(200).json({ resultCd:"400", resultMsg: "필수값 누락" });
