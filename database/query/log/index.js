@@ -9,15 +9,15 @@ const getLogHistory = (startDate,endDate) => new Promise((resolve, reject) => {
                     U.name       as name,
                     l.method,
                     l.log_name   as logName,
-                    l.success_yn as successYn,
+                    l.is_success as isSuccess,
                     l.log_desc   as logDesc,
                     l.ip_address as ipAddress,
-                    l.created_at as createdAt
+                    DATE_FORMAT(l.created_at, '%Y-%m-%d %H:%i') as createdAt
             FROM log_history as l
                 LEFT JOIN user as U
-                on L.user_id = U.id
-            WHERE DATE(created_at) BETWEEN STR_TO_DATE(?, '%Y-%m-%d') AND STR_TO_DATE(?, '%Y-%m-%d')
-            ORDER BY created_at DESC;
+                on l.user_id = U.id
+            WHERE DATE(l.created_at) BETWEEN STR_TO_DATE(?, '%Y-%m-%d') AND STR_TO_DATE(?, '%Y-%m-%d')
+            ORDER BY l.created_at DESC;
         `
     getConnection((conn) => {
         conn.query(sql, [startDate,endDate],(err, rows, fields) => {
@@ -31,7 +31,7 @@ const getLogHistory = (startDate,endDate) => new Promise((resolve, reject) => {
     });
 });
 
-const saveEvent = (userId = 0,method,logName,successYn,logDesc, ipAddress) => new Promise((resolve, reject) => {
+const saveEvent = (userId = 0,method,logName,isSuccess,logDesc, ipAddress) => new Promise((resolve, reject) => {
     getConnection((conn) => {
         const createdAt = dayjs().format('YYYY-MM-DD HH:mm:ss');
 
@@ -39,7 +39,7 @@ const saveEvent = (userId = 0,method,logName,successYn,logDesc, ipAddress) => ne
             user_id: userId,
             method,
             log_name: logName,
-            success_yn: successYn,
+            is_success: isSuccess,
             log_desc: logDesc,
             ip_address: ipAddress,
             created_at: createdAt

@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 const Log = require('../../database/query/log');
 const Scenario = require('../../database/query/scenario');
+const {verifyToken} = require("../../middleware/auth");
 
-router.get('/log-history', async(req,res)=>{
+router.get('/log-history',verifyToken, async(req,res)=>{
     const {startDate, endDate} = req.query;
 
     try {
@@ -19,6 +20,8 @@ router.get('/log-history', async(req,res)=>{
 
     }
 })
+
+/*챗 호출 히스토리 저장*/
 router.post('/chat-history', async (req, res)=>{
     const {scenarioId} = req.body;
     try {

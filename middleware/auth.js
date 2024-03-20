@@ -2,6 +2,12 @@ const jwt = require('jsonwebtoken');
 const secretKey = 'MFswDQYJKoZIhvcNAQEBBQADSgAwRwJAeswwZ+ANz25d7nMVcWkwGrEx3IVUz39/LghHQxW4lLjgXJbz4F+Dam2mNIAmukFdY0F0YzH+52xPiS33Y3FaKwIDAQAB'; // JWT를 서명하는 데 사용할 시크릿 키
 
 exports.verifyToken = (req, res, next) => {
+    if (!req.headers.authorization){
+        return res.status(401).json({
+            code: 401,
+            message: '토큰이 유효하지 않습니다.'
+        });
+    }
 
     const token = req.headers.authorization.split('Bearer ')[1];
     // 인증 완료

@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const getConnection = require('../database/maria');
 const user = require('../database/query/user');
 /* GET home page. */
 router.get('/', function(req, res) {

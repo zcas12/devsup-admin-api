@@ -6,13 +6,17 @@ const bcrypt = require('bcrypt');
 const {verifyToken} = require('../../middleware/auth');
 const jwt = require('jsonwebtoken');
 const secretKey = 'MFswDQYJKoZIhvcNAQEBBQADSgAwRwJAeswwZ+ANz25d7nMVcWkwGrEx3IVUz39/LghHQxW4lLjgXJbz4F+Dam2mNIAmukFdY0F0YzH+52xPiS33Y3FaKwIDAQAB'; // JWT를 서명하는 데 사용할 시크릿 키
+const requestIp = require('request-ip');
 
 /* 로그인 */
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
-        //const hashedPassword = await bcrypt.hash(password, 10);
-        
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        console.log("ip" + req.ip)
+        console.log("ipAddress" + ipAddress)
+        console.log("requestIp" + requestIp.getClientIp(req))
         //필수값 체크
         if(!username || !password){
             await Log.saveEvent(undefined, 'POST', '로그인', false,"[필수값 누락]",req.ip);

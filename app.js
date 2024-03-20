@@ -46,10 +46,12 @@ const indexRouter = require('./routes/index');
 const logRouter = require('./routes/log/index');
 const authRouter = require('./routes/auth/index');
 const scenarioRouter = require('./routes/scenario/index');
+const dashboardRouter = require('./routes/dashboard/index');
 app.use('/devsup/api', indexRouter);
 app.use('/devsup/api/auth', authRouter);
 app.use('/devsup/api/log', logRouter);
 app.use('/devsup/api/scenario', scenarioRouter);
+app.use('/devsup/api/dashboard', dashboardRouter);
 app.listen(port, () => {
     console.log(`start! express server on http://localhost:${port}`);
     console.log('__dirname :' + __dirname);
