@@ -109,4 +109,22 @@ const deleteScenario = (ids) => new Promise((resolve, reject) => {
         });
     });
 });
-module.exports = {findScenarioById,findScenarioByParentId,findAllScenario,saveScenario,saveChildrenName,addChildren,deleteScenario};
+const findAllScenarioExport = () => new Promise((resolve, reject) => {
+    const sql = `SELECT id, name, contents, level, parent_id as parentId, seq 
+                        FROM  chat_scenario 
+                        WHERE is_deleted = 1
+                        ORDER BY level ASC, parent_id ASC,seq ASC;
+                        `
+    getConnection((conn) => {
+        conn.query(sql, (err, rows, fields) => {
+            conn.release();
+            if (err) {
+                reject(err);
+            } else {
+                resolve(rows);
+            }
+        });
+    });
+});
+
+module.exports = {findScenarioById,findScenarioByParentId,findAllScenario,saveScenario,saveChildrenName,addChildren,deleteScenario,findAllScenarioExport};

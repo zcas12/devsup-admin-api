@@ -3,7 +3,9 @@ const router = express.Router();
 const Scenario = require('../../database/query/scenario');
 const Log = require('../../database/query/log');
 const {verifyToken} = require('../../middleware/auth');
-
+const fs = require('fs');
+const path = require('path');
+const json2csv = require('json2csv').parse;
 router.get('/', verifyToken, async(req,res)=>{
     try {
         let scenario = await Scenario.findAllScenario();
@@ -44,16 +46,16 @@ router.post('/save', verifyToken, async (req, res)=>{
         const {id, contents, url} = req.body;
         /*필수값 체크*/
         if (!id){
-            await Log.saveEvent(undefined, 'GET', '시나리오 저장', false,"필수값 누락",req.ip);
+            await Log.saveEvent(undefined, 'POST', '시나리오 저장', false,"필수값 누락",req.ip);
             return res.status(200).json({ resultCd:"400", resultMsg: "시나리오 컨텐츠 필수값 누락" });
         }
         const scenario= await Scenario.findScenarioById(id);
         /*시나리오 데이터 유무 체크*/
         if (!scenario){
-            await Log.saveEvent(undefined, 'GET', '시나리오 상세조회', false,"데이터를 찾을수 없습니다.",req.ip);
-            return res.status(200).json({ resultCd:"404", resultMsg: "데이터를 찾을수 없습니다." });
+            await Log.saveEvent(undefined, 'POST', '시나리오 저장', false,"해당 데이터를 찾을수 없습니다.",req.ip);
+            return res.status(200).json({ resultCd:"404", resultMsg: "해당 데이터를 찾을수 없습니다." });
         }
-
+        await Log.saveEvent(undefined, 'POST', '시나리오 저장', true,"저장 성공",req.ip);
         await Scenario.saveScenario(id, contents, url)
         res.status(200).json({resultCd: "200", resultMsg: "저장성공"});
     }catch (error) {
@@ -105,6 +107,34 @@ router.post('/delete', verifyToken, async (req, res)=>{
         res.status(500).json({resultCd:"500", resultMsg: "시나리오 삭제 실패"})
     }
 });
+
+router.get('/export', async(req,res)=> {
+    try {
+        const {type} = req.query;
+        const result = await Scenario.findAllScenarioExport();
+        if (!type ){
+            await Log.saveEvent(undefined, 'GET', '시나리오 목록 파일 다운로드', false,"필수값 누락",req.ip);
+            return res.status(400).json({ resultCd:"400", resultMsg: "필수값 누락" });
+        }
+        if (type === 'csv'){
+            const csv = json2csv(result);
+            fs.writeFileSync('./static/file/시나리오.csv', '\uFEFF' + csv, 'utf-8');
+            res.sendFile('시나리오.csv', { root: './static/file' }); // 파일의 경로 설정
+        }else if (type === 'json'){
+            // JSON 파일 생성
+            fs.writeFileSync('./static/file/시나리오.json', JSON.stringify(result, null, 2));
+
+            // 생성된 파일을 응답으로 보냄
+            res.sendFile('시나리오.json', { root: './static/file'}); // 파일의 경로 설정
+        }else{
+            res.status(400).json({resultCd:"400", resultMsg: "지원하지 않는 파일형식입니다."})
+        }
+    }catch (error) {
+        await Log.saveEvent(undefined, 'GET', '시나리오 목록 파일 다운로드', false,"다운로드 실패",req.ip);
+        res.status(500).json({resultCd:"500", resultMsg: "다운로드 실패"})
+    }
+});
+
 /*Tree 데이터 생성*/
 function buildTree(data) {
     const nodeMap = {};
