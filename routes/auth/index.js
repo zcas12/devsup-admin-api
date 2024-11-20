@@ -14,9 +14,7 @@ router.post('/login', async (req, res) => {
         const { username, password } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
         const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-        console.log("ip" + req.ip)
-        console.log("ipAddress" + ipAddress)
-        console.log("requestIp" + requestIp.getClientIp(req))
+
         //필수값 체크
         if(!username || !password){
             await Log.saveEvent(undefined, 'POST', '로그인', false,"[필수값 누락]",req.ip);
@@ -61,10 +59,30 @@ router.post('/login', async (req, res) => {
         });
     }
 });
-
+/* 로그인 */
+router.post('/signup', async (req, res) => {
+    try {
+        const { username, password, name, deptName } = req.body;
+        const hashedPassword = await bcrypt.hash(password, 10);
+        //필수값 체크
+        if(!username || !password || !name || !deptName){
+            await Log.saveEvent(undefined, 'POST', '로그인', false,"[필수값 누락]",req.ip);
+            return res.status(200).json({ resultCd:"400", resultMsg: "필수값 누락" });
+        }
+        // 계정등록
+        await User.addUser(username, hashedPassword, name, deptName);
+        await Log.saveEvent(undefined, 'POST', '회원가입', true,'회원가입 성공',req.ip);
+        res.status(200).json({resultCd:"200", resultMsg: "회원가입에 성공했습니다."});
+    } catch (error) {
+        await Log.saveEvent(undefined, 'POST', '회원가입', false,'서버 에러',req.ip);
+        console.log(error)
+        res.status(500).json({
+            code: 500,
+            message: '서버 에러',
+        });
+    }
+});
 router.get('/session-check', verifyToken, async  (req, res) => {
-    const ip = req.header['x-forwarded-for'] || req.connection.remoteAddress;
-
 
     const session= req.session.user;
     if (session){

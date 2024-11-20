@@ -13,10 +13,12 @@ router.get('/exec', verifyToken, async(req,res)=>{
             return res.status(400).json({ resultCd:"400", resultMsg: "필수값 누락" });
         }
         const totalCnt = await Dashboard.getTotalExec();
+        const beforeCnt = await Dashboard.getBeforeExec();
         const searchCnt = await Dashboard.getRangeExec(startDate,endDate);
         const categoryCnt = await Dashboard.getRangeExecGroupByLevel1(startDate,endDate);
         const result = {
-            totalCnt: totalCnt.cnt ,
+            totalCnt: totalCnt.cnt,
+            beforeCnt: beforeCnt.cnt,
             searchCnt: searchCnt.cnt,
             categoryCnt:categoryCnt
         }

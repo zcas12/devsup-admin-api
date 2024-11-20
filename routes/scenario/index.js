@@ -6,6 +6,8 @@ const {verifyToken} = require('../../middleware/auth');
 const fs = require('fs');
 const path = require('path');
 const json2csv = require('json2csv').parse;
+
+/*시나리오 목록 조회 */
 router.get('/', verifyToken, async(req,res)=>{
     try {
         let scenario = await Scenario.findAllScenario();
@@ -19,6 +21,8 @@ router.get('/', verifyToken, async(req,res)=>{
         res.status(500).json({resultCd:"500", resultMsg: "load fail"})
     }
 });
+
+/*시나리오 상세보기 */
 router.get('/detail', verifyToken, async(req,res)=>{
     try {
         const {scenarioId} = req.query;
@@ -41,6 +45,7 @@ router.get('/detail', verifyToken, async(req,res)=>{
     }
 });
 
+/*시나리오 저장 */
 router.post('/save', verifyToken, async (req, res)=>{
     try {
         const {id, contents, url} = req.body;
@@ -55,14 +60,18 @@ router.post('/save', verifyToken, async (req, res)=>{
             await Log.saveEvent(undefined, 'POST', '시나리오 저장', false,"해당 데이터를 찾을수 없습니다.",req.ip);
             return res.status(200).json({ resultCd:"404", resultMsg: "해당 데이터를 찾을수 없습니다." });
         }
+
         await Log.saveEvent(undefined, 'POST', '시나리오 저장', true,"저장 성공",req.ip);
         await Scenario.saveScenario(id, contents, url)
         res.status(200).json({resultCd: "200", resultMsg: "저장성공"});
     }catch (error) {
+        console.log(error)
         await Log.saveEvent(undefined, 'POST', '시나리오 컨텐츠 저장', false,"저장 실패",req.ip);
         res.status(500).json({resultCd:"500", resultMsg: "시나리오 컨텐츠 저장 실패"})
     }
 });
+
+/*시나리오 하위 목록명 저장 */
 router.post('/children/save', verifyToken, async (req, res)=>{
     try {
         const {id,children} = req.body;
@@ -108,6 +117,11 @@ router.post('/delete', verifyToken, async (req, res)=>{
     }
 });
 
+/*
+시나리오 데이터 export
+param
+type: json, csv
+*/
 router.get('/export', async(req,res)=> {
     try {
         const {type} = req.query;

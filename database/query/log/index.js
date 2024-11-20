@@ -1,9 +1,10 @@
 const getConnection = require("../../maria");
-const dayjs = require('dayjs')
+const dayjs = require('dayjs');
 
 const getLogHistory = (startDate,endDate) => new Promise((resolve, reject) => {
     const sql =`
             SELECT  l.id,
+                    
                     l.user_id    as userId,
                     U.user_name  as userName,
                     U.name       as name,

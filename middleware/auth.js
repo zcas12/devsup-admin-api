@@ -15,13 +15,12 @@ exports.verifyToken = (req, res, next) => {
         req.decoded = jwt.verify(token, secretKey);
         return next();
     }
-
     // 인증 실패
     catch(error) {
         if (error.name === 'TokenExpireError') {
             return res.status(419).json({
                 code: 419,
-                message: '토큰이 만료되었습니다.'
+                message: ' '
             });
         }
         return res.status(401).json({
