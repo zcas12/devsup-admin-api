@@ -8,8 +8,13 @@ const cors = require("cors");
 const path = require('path');
 const app = express();
 const port = 8080;
-
-app.use(cors());
+const corsOptions = {
+    origin: process.env.NODE_ENV === 'production'
+        ? 'https://devsup.kcp.co.kr' // 배포 환경에서의 URL
+        : 'http://localhost:3000', // 개발 환경에서의 URL
+    credentials: true, // 쿠키나 인증 정보를 포함한 요청을 허용
+};
+app.use(cors(corsOptions));
 app.use(serveStatic(path.join(__dirname, "public")));
 app.use(bodyParser.json());
 app.use(
@@ -24,8 +29,8 @@ app.use(
         resave: false,
         saveUninitialized: false,
         cookie: {
-            httpOnly: true, // 자바스크립트를 통해 세션 쿠키를 사용할 수 없도록 함
-            Secure: true,
+            httpOnly: false, // 자바스크립트를 통해 세션 쿠키를 사용할 수 없도록 함
+            secure: process.env.NODE_ENV === 'production', // 프로덕션 환경에서만 true
             maxAge: 60 * 60 * 1000,// 60분
             //domain: 'your-domain.com' // 특정 도메인을 여기에 입력
         }
